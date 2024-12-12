@@ -1,10 +1,17 @@
 package main
 
 import(
-	"fmt"
+	"github.com/gofiber/fiber/v2"
 )
 
 
 func main(){
-	fmt.Println("hello")
+	app := fiber.New()
+	app.Get("/", handleFoo)
+	app.Listen("localhost:8080")
+}
+
+
+func handleFoo(c *fiber.Ctx) error{
+	return c.JSON(map[string]string{"msg":"hello foo"})
 }
