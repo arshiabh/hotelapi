@@ -1,6 +1,7 @@
 package api
 
 import (
+
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +23,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 	user, err := h.UserStore.GetUserById(c.Context(), id)
 	if err != nil {
-		return err
+		return c.JSON(fiber.Map{"message":"data not found"})
 	}
 	return c.JSON(user)
 }
@@ -69,4 +70,25 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "user successfully removed"})
+}
+
+func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var params *types.CreateUserFromParams
+	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+	if err := params.Validate(); err != nil {
+		return nil
+	}
+	user, err := h.UserStore.GetUserById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	if err := h.UserStore.UpdateUser(c.Context(), user, params); err != nil {
+		return err
+	} 
+
+	return c.JSON(fiber.Map{"message":"successfully updated!"})
 }
