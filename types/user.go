@@ -8,7 +8,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// create this just for POST request
+type UpdateUserFromParams struct {
+	FirstName string ` json:"firstName" bson:"firstName"`
+	LastName  string ` json:"lastName" bson:"lastName"`
+}
+
+func (p *UpdateUserFromParams) Prepare() error {
+	if len(p.FirstName) < 2 {
+		return fmt.Errorf("username is too short")
+	}
+	if len(p.LastName) < 2 {
+		return fmt.Errorf("lastname is too short")
+	}
+
+	return nil
+}
+
 type CreateUserFromParams struct {
 	FirstName string ` json:"firstName"`
 	LastName  string ` json:"lastName"`
@@ -25,10 +40,9 @@ type User struct {
 }
 
 const (
-	cost = 14
+	cost            = 14
 	firstNamelength = 2
-	lastNamelength = 2
-
+	lastNamelength  = 2
 )
 
 func (params CreateUserFromParams) Validate() error {
@@ -44,12 +58,16 @@ func (params CreateUserFromParams) Validate() error {
 		return fmt.Errorf("email is invalid")
 	}
 
+	if len(params.Password) < 4 {
+		return fmt.Errorf("password is weak")
+	}
+
 	return nil
 }
 
 func isEmailValid(e string) bool {
-    emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-    return emailRegex.MatchString(e)
+	emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	return emailRegex.MatchString(e)
 }
 
 func NewUserFromParams(params CreateUserFromParams) (*User, error) {
