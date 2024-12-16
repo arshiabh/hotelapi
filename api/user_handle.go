@@ -1,8 +1,6 @@
 package api
 
 import (
-	"context"
-
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +20,7 @@ func NewUserHandler(userstore db.UserStore) *UserHandler {
 
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user, err := h.UserStore.GetUserById(context.TODO(), id)
+	user, err := h.UserStore.GetUserById(c.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -41,6 +39,10 @@ func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	var params *types.CreateUserFromParams
 	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+
+	if err := params.Validate(); err != nil {
 		return err
 	}
 

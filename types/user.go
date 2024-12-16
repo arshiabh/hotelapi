@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+	"regexp"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,8 +24,36 @@ type User struct {
 	EncryptedPassword string             ` json:"-" bson:"EncryptedPassword"`
 }
 
+const (
+	cost = 14
+	firstNamelength = 2
+	lastNamelength = 2
+
+)
+
+func (params CreateUserFromParams) Validate() error {
+	if len(params.FirstName) < firstNamelength {
+		return fmt.Errorf("firstname is too short")
+	}
+
+	if len(params.LastName) < lastNamelength {
+		return fmt.Errorf("lastname is too short")
+	}
+
+	if !isEmailValid(params.Email) {
+		return fmt.Errorf("email is invalid")
+	}
+
+	return nil
+}
+
+func isEmailValid(e string) bool {
+    emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+    return emailRegex.MatchString(e)
+}
+
 func NewUserFromParams(params CreateUserFromParams) (*User, error) {
-	EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), 14)
+	EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), cost)
 	if err != nil {
 		return nil, err
 	}
