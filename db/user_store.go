@@ -15,8 +15,8 @@ type UserStore interface {
 	GetUserById(context.Context, string) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
 	InsertUser(context.Context, *types.User) (*types.User, error)
-	DropUser(context.Context, *types.User) error
-	UpdateUser(context.Context, *types.User, *types.UpdateUserFromParams) error
+	DropUser(context.Context, primitive.ObjectID) error
+	UpdateUser(context.Context, primitive.ObjectID, bson.M) error
 }
 
 type MongoUserStore struct {
@@ -67,16 +67,16 @@ func (s *MongoUserStore) InsertUser(ctx context.Context, user *types.User) (*typ
 	return user, nil
 }
 
-func (s *MongoUserStore) DropUser(ctx context.Context, user *types.User) error {
-	_, err := s.coll.DeleteOne(ctx, bson.M{"_id": user.ID})
+func (s *MongoUserStore) DropUser(ctx context.Context, uid primitive.ObjectID) error {
+	_, err := s.coll.DeleteOne(ctx, bson.M{"_id": uid})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *MongoUserStore) UpdateUser(ctx context.Context, user *types.User, update *types.UpdateUserFromParams) error {
-	_, err := s.coll.UpdateOne(ctx, bson.M{"_id": user.ID},
+func (s *MongoUserStore) UpdateUser(ctx context.Context, uid primitive.ObjectID, update bson.M) error {
+	_, err := s.coll.UpdateOne(ctx, bson.M{"_id": uid},
 		bson.M{
 			"$set": update,
 		},

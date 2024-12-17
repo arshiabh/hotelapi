@@ -4,6 +4,7 @@ import (
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // must implement db.userstore
@@ -61,11 +62,12 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 
 func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user, err := h.UserStore.GetUserById(c.Context(), id)
+	uid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	if err := h.UserStore.DropUser(c.Context(), user); err != nil {
+
+	if err := h.UserStore.DropUser(c.Context(), uid); err != nil {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "user successfully removed"})
@@ -73,20 +75,18 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	id := c.Params("id")
+	uid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
 	var params *types.UpdateUserFromParams
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-	if err := params.Prepare(); err != nil {
-		return err
-	}
 
-	user, err := h.UserStore.GetUserById(c.Context(), id)
-	if err != nil {
-		return err
-	}
+	update := params.ToBson()
 
-	if err := h.UserStore.UpdateUser(c.Context(), user, params); err != nil {
+	if err := h.UserStore.UpdateUser(c.Context(), uid, update); err != nil {
 		return err
 	}
 

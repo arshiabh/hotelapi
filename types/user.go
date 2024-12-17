@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,15 +14,15 @@ type UpdateUserFromParams struct {
 	LastName  string ` json:"lastName" bson:"lastName"`
 }
 
-func (p *UpdateUserFromParams) Prepare() error {
-	if len(p.FirstName) < 2 {
-		return fmt.Errorf("username is too short")
+func (p *UpdateUserFromParams) ToBson() bson.M {
+	m := bson.M{}
+	if len(p.FirstName) > 0 {
+		m["firstName"] = p.FirstName
 	}
-	if len(p.LastName) < 2 {
-		return fmt.Errorf("lastname is too short")
+	if len(p.LastName) > 0 {
+		m["lastName"] = p.LastName
 	}
-
-	return nil
+	return m
 }
 
 type CreateUserFromParams struct {
