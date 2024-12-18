@@ -38,7 +38,7 @@ func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
-	var params *types.CreateUserFromParams
+	var params types.CreateUserFromParams
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	user, err := types.NewUserFromParams(*params)
+	user, err := types.NewUserFromParams(params)
 	if err != nil {
 		return err
 	}
