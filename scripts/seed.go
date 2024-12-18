@@ -17,16 +17,27 @@ func main() {
 		log.Fatal(err)
 	}
 	HotelStore := db.NewMongoHotelStore(client, db.DBNAME)
+	RoomStore := db.NewMongoRoomStore(client, db.DBNAME)
+
 	hotel := types.Hotel{
 		Name:     "bellucia",
 		Location: "france",
 	}
-	HotelStore.InsertHotel(context.TODO(), &hotel)
+	insertedhotel, err := HotelStore.InsertHotel(context.TODO(), &hotel)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	room := types.Room{
 		Type:      types.SingleRoomType,
 		BasePrice: 99.9,
 	}
-
-	fmt.Println(hotel, room)
+	
+	room.HotelID = insertedhotel.ID
+	insertedroom , err := RoomStore.InsertRoom(context.TODO(), &room)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(insertedhotel)
+	fmt.Println(insertedroom)
 }
