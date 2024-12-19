@@ -31,3 +31,11 @@ func (h *HotelHandler) HandlePostHotel(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"inserted":insertedHotel})
 }
+
+func (h *HotelHandler) HandlePutHotel(c *fiber.Ctx) error {
+	var params types.Hotel
+	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+	return nil
+}

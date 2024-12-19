@@ -23,7 +23,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 	user, err := h.UserStore.GetUserById(c.Context(), id)
 	if err != nil {
-		return c.JSON(fiber.Map{"message": "data not found"})
+		return c.Status(404).JSON(fiber.Map{"message": "data not found"})
 	}
 	return c.JSON(user)
 }

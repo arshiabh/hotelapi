@@ -9,6 +9,7 @@ type Hotel struct {
 	Rooms    []primitive.ObjectID `json:"rooms" bson:"rooms"`
 }
 
+
 type RoomType int
 
 const (
