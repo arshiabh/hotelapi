@@ -38,11 +38,7 @@ func (s *MongoHotelStore) InsertHotel(ctx context.Context, hotel *types.Hotel) (
 }
 
 func (s *MongoHotelStore) UpdateHotel(ctx context.Context, hid primitive.ObjectID, update bson.M) error {
-	_,err := s.coll.UpdateOne(ctx, bson.M{"_id":hid},
-	bson.M{
-		"$set":update,
-	},
-	)
+	_,err := s.coll.UpdateOne(ctx, bson.M{"_id":hid},update)
 	if err != nil {
 		return err
 	}
