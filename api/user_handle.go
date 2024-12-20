@@ -21,7 +21,11 @@ func NewUserHandler(userstore db.UserStore) *UserHandler {
 
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user, err := h.UserStore.GetUserById(c.Context(), id)
+	uid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error":"bad request"})
+	}
+	user, err := h.UserStore.GetUserById(c.Context(), uid)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": "data not found"})
 	}

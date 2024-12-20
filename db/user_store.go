@@ -19,7 +19,7 @@ type Dropper interface {
 type UserStore interface {
 	Dropper
 
-	GetUserById(context.Context, string) (*types.User, error)
+	GetUserById(context.Context, primitive.ObjectID) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
 	InsertUser(context.Context, *types.User) (*types.User, error)
 	DropUser(context.Context, primitive.ObjectID) error
@@ -43,13 +43,9 @@ func (s *MongoUserStore) Drop(ctx context.Context) error {
 	return s.coll.Drop(ctx)
 }
 
-func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.User, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+func (s *MongoUserStore) GetUserById(ctx context.Context, id primitive.ObjectID) (*types.User, error) {
 	user := types.User{}
-	if err := s.coll.FindOne(ctx, bson.M{"_id": oid}).Decode(&user); err != nil {
+	if err := s.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return &user, nil

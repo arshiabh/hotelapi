@@ -54,8 +54,16 @@ func seedHotel(name string, location string) {
 
 }
 
+// func gethotel(hid string) {
+// 	id, _ := primitive.ObjectIDFromHex(hid)
+// 	hotel, _ := HotelStore.GetHotel(context.TODO(), id)
+// 	fmt.Println(hotel)
+// }
+
+
 func main() {
 	seedHotel("bellucia", "france")
+	// gethotel("67642dcf64e7d66925170536")
 }
 
 func init() {

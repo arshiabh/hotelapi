@@ -12,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
 		return c.JSON(map[string]string{"error": err.Error()})
@@ -37,6 +36,10 @@ func main() {
 	apiv1.Get("user/:id", userhandler.HandleGetUser)
 	apiv1.Delete("user/:id", userhandler.HandleDeleteUser)
 	apiv1.Put("user/:id", userhandler.HandlePutUser)
+
+	hotelhandler := api.NewHotelHandler(db.NewMongoHotelStore(client))
+	apiv1.Get("hotel/:id", hotelhandler.HandleGetHotel)
+	apiv1.Get("hotel/", hotelhandler.HandleGetHotels)
 
 	app.Listen(*listenAddr)
 }
