@@ -18,11 +18,12 @@ var (
 	HotelStore *db.MongoHotelStore
 )
 
-func seedHotel(name string, location string) {
+func seedHotel(name string, location string, rating int) {
 	hotel := types.Hotel{
 		Name:     name,
 		Location: location,
 		Rooms:    []primitive.ObjectID{},
+		Rating:   rating,
 	}
 	insertedhotel, err := HotelStore.InsertHotel(context.TODO(), &hotel)
 	if err != nil {
@@ -30,16 +31,16 @@ func seedHotel(name string, location string) {
 	}
 	rooms := []types.Room{
 		{
-			Type:      types.SingleRoomType,
-			BasePrice: 99.9,
+			Size: "small",
+			Price: 99.9,
 		},
 		{
-			Type:      types.SeasideRoomType,
-			BasePrice: 122.0,
+			Size: "medium",
+			Price: 122.0,
 		},
 		{
-			Type:      types.DeluxeRoomType,
-			BasePrice: 139.99,
+			Size: "kingsize",
+			Price: 139.99,
 		},
 	}
 
@@ -54,16 +55,10 @@ func seedHotel(name string, location string) {
 
 }
 
-// func gethotel(hid string) {
-// 	id, _ := primitive.ObjectIDFromHex(hid)
-// 	hotel, _ := HotelStore.GetHotel(context.TODO(), id)
-// 	fmt.Println(hotel)
-// }
-
-
 func main() {
-	seedHotel("bellucia", "france")
-	// gethotel("67642dcf64e7d66925170536")
+	seedHotel("bellucia", "france", 3)
+	seedHotel("cozy one", "netherland", 5)
+	seedHotel("totenham", "london", 1)
 }
 
 func init() {

@@ -13,7 +13,7 @@ const coll = "rooms"
 
 type Roomstore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
-
+	GetRooms(context.Context, primitive.ObjectID) ([]*types.Room, error)
 }
 
 type MongoRoomStore struct {
@@ -46,3 +46,12 @@ func (s *MongoRoomStore) InsertRoom(ctx context.Context, room *types.Room) (*typ
 }
 
 
+func (s *MongoRoomStore) GetRooms(ctx context.Context, id primitive.ObjectID) ([]*types.Room, error){
+	rooms :=  []*types.Room{}
+	res, err := s.coll.Find(ctx, bson.M{"hotelID":id})
+	if err != nil {
+		return nil, err
+	}
+	res.All(ctx, &rooms)
+	return rooms, nil
+}

@@ -37,8 +37,11 @@ func main() {
 	apiv1.Delete("user/:id", userhandler.HandleDeleteUser)
 	apiv1.Put("user/:id", userhandler.HandlePutUser)
 
-	hotelhandler := api.NewHotelHandler(db.NewMongoHotelStore(client))
+	hotelstore := db.NewMongoHotelStore(client)
+	roomstore := db.NewMongoRoomStore(client, hotelstore)
+	hotelhandler := api.NewHotelHandler(hotelstore, roomstore)
 	apiv1.Get("hotel/:id", hotelhandler.HandleGetHotel)
+	apiv1.Get("hotel/:id/rooms/", hotelhandler.HandleGetHotelRooms)
 	apiv1.Get("hotel/", hotelhandler.HandleGetHotels)
 
 	app.Listen(*listenAddr)
