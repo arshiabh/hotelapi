@@ -7,6 +7,7 @@ import (
 
 	"github.com/arshiabh/hotelapi/api"
 	"github.com/arshiabh/hotelapi/db"
+	"github.com/arshiabh/hotelapi/middleware"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,18 +29,27 @@ func main() {
 	}
 
 	app := fiber.New(config)
-	apiv1 := app.Group("api/v1/")
+	apiv1 := app.Group("api/v1/", middleware.JWTauthentication)
 
-	userhandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
+	var (
+		hotelstore = db.NewMongoHotelStore(client)
+		roomstore  = db.NewMongoRoomStore(client, hotelstore)
+		userstore  = db.NewMongoUserStore(client)
+		store  = db.Store{
+			User: userstore,
+			Room: roomstore,
+			Hotel: hotelstore,
+		}
+	)
+
+	userhandler := api.NewUserHandler(userstore)
 	apiv1.Post("user/", userhandler.HandlePostUser)
 	apiv1.Get("user/", userhandler.HandleGetUsers)
 	apiv1.Get("user/:id", userhandler.HandleGetUser)
 	apiv1.Delete("user/:id", userhandler.HandleDeleteUser)
 	apiv1.Put("user/:id", userhandler.HandlePutUser)
 
-	hotelstore := db.NewMongoHotelStore(client)
-	roomstore := db.NewMongoRoomStore(client, hotelstore)
-	hotelhandler := api.NewHotelHandler(hotelstore, roomstore)
+	hotelhandler := api.NewHotelHandler(store)
 	apiv1.Get("hotel/:id", hotelhandler.HandleGetHotel)
 	apiv1.Get("hotel/:id/rooms/", hotelhandler.HandleGetHotelRooms)
 	apiv1.Get("hotel/", hotelhandler.HandleGetHotels)

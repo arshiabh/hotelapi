@@ -27,7 +27,7 @@ func (tdb *testdb) teardown() {
 }
 
 func setup(t *testing.T) *testdb {
-	dbname := "hotel-reservation-test"
+	// dbname := "hotel-reservation-test"
 	testdburi := "mongodb://localhost:27017"
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(testdburi))
 	if err != nil {
@@ -35,7 +35,7 @@ func setup(t *testing.T) *testdb {
 	}
 	t.Log()
 	return &testdb{
-		UserStore: db.NewMongoUserStore(client, dbname),
+		UserStore: db.NewMongoUserStore(client),
 	}
 }
 

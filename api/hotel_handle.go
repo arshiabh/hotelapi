@@ -1,7 +1,6 @@
 package api
 
 import (
-
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
@@ -9,28 +8,28 @@ import (
 )
 
 type HotelHandler struct {
+	Store      db.Store
 	HotelStore db.Hotelstore
-	RoomStore db.Roomstore
+	RoomStore  db.Roomstore
 }
 
 type HotelQueryparams struct {
-	Rooms bool
+	Rooms  bool
 	Rating int
 }
 
-func NewHotelHandler(hotelstore db.Hotelstore, roomstore db.Roomstore) *HotelHandler {
+func NewHotelHandler(store db.Store) *HotelHandler {
 	return &HotelHandler{
-		HotelStore: hotelstore,
-		RoomStore: roomstore,
+		Store: store,
 	}
 }
 
 func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 	var qparams HotelQueryparams
 	if err := c.QueryParser(&qparams); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error":"bad request"})
+		return c.Status(400).JSON(fiber.Map{"error": "bad request"})
 	}
-	hotels, err := h.HotelStore.GetHotels(c.Context())
+	hotels, err := h.Store.Hotel.GetHotels(c.Context())
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "could not fetch data"})
 	}
@@ -43,13 +42,12 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "bad request"})
 	}
-	hotel, err := h.HotelStore.GetHotelById(c.Context(), hid)
+	hotel, err := h.Store.Hotel.GetHotelById(c.Context(), hid)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": "object not found"})
 	}
 	return c.JSON(fiber.Map{"hotel": hotel})
 }
-
 
 func (h *HotelHandler) HandleGetHotelRooms(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -57,24 +55,23 @@ func (h *HotelHandler) HandleGetHotelRooms(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "bad request"})
 	}
-	rooms ,err := h.RoomStore.GetRooms(c.Context(), hid)
+	rooms, err := h.Store.Room.GetRooms(c.Context(), hid)
 	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"error":"could not fetch data"})
+		return c.Status(404).JSON(fiber.Map{"error": "could not fetch data"})
 	}
 	return c.JSON(fiber.Map{"rooms": rooms})
 }
-
 
 func (h *HotelHandler) HandlePostHotel(c *fiber.Ctx) error {
 	var params types.Hotel
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-	hotel, err := h.HotelStore.InsertHotel(c.Context(), &params)
+	hotel, err := h.Store.Hotel.InsertHotel(c.Context(), &params)
 	if err != nil {
 		return nil
 	}
-	insertedHotel, err := h.HotelStore.InsertHotel(c.Context(), hotel)
+	insertedHotel, err := h.Store.Hotel.InsertHotel(c.Context(), hotel)
 	if err != nil {
 		return err
 	}
