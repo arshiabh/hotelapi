@@ -53,7 +53,7 @@ func TestUserPost(t *testing.T) {
 		Email:     "arshitest@gmail.com",
 		Password:  "1234",
 	}
-	
+
 	b, _ := json.Marshal(params)
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(b))
 	req.Header.Add("Content-Type", "application/json")

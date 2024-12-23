@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/arshiabh/hotelapi/types"
+	"github.com/arshiabh/hotelapi/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,6 +25,7 @@ type UserStore interface {
 	InsertUser(context.Context, *types.User) (*types.User, error)
 	DropUser(context.Context, primitive.ObjectID) error
 	UpdateUser(context.Context, primitive.ObjectID, bson.M) error
+	Validation(context.Context, types.Authparams) error
 }
 
 type MongoUserStore struct {
@@ -36,6 +38,18 @@ func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 		client: client,
 		coll:   client.Database(DBNAME).Collection(usercoll),
 	}
+}
+
+func (s *MongoUserStore) Validation(ctx context.Context, data types.Authparams) error {
+	var user types.User
+	res := s.coll.FindOne(ctx, bson.M{"email": data.Email})
+	if err := res.Decode(&user); err != nil {
+		return fmt.Errorf("email is not valid")
+	}
+	if err := utils.CheckHashPassword(user.EncryptedPassword, data.Password); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MongoUserStore) Drop(ctx context.Context) error {

@@ -29,7 +29,8 @@ func main() {
 	}
 
 	app := fiber.New(config)
-	apiv1 := app.Group("api/v1/", middleware.JWTauthentication)
+	apiv1 := app.Group("api/v1/", middleware.JWTAuthentication)
+	auth := app.Group("api/", )
 
 	var (
 		hotelstore = db.NewMongoHotelStore(client)
@@ -41,7 +42,10 @@ func main() {
 			Hotel: hotelstore,
 		}
 	)
-
+	
+	authhandler := api.NewAuthHandler(userstore)
+	auth.Post("auth/", authhandler.HandleAuthenticate)
+	
 	userhandler := api.NewUserHandler(userstore)
 	apiv1.Post("user/", userhandler.HandlePostUser)
 	apiv1.Get("user/", userhandler.HandleGetUsers)

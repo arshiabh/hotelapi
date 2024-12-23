@@ -1,6 +1,7 @@
 package api
 
 import (
+
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
@@ -23,7 +24,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 	uid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error":"bad request"})
+		return c.Status(400).JSON(fiber.Map{"error": "bad request"})
 	}
 	user, err := h.UserStore.GetUserById(c.Context(), uid)
 	if err != nil {

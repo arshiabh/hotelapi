@@ -9,6 +9,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Authparams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type UpdateUserFromParams struct {
 	FirstName string ` json:"firstName" bson:"firstName"`
 	LastName  string ` json:"lastName" bson:"lastName"`
