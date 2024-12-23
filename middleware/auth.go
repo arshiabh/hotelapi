@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const secret_key = "supersecret"
@@ -37,9 +36,9 @@ func ParseJWTtoken(tokenstr string) error {
 }
 
 
-func GenarateToken(userid primitive.ObjectID, email string) (string, error){
+func GenarateToken(email string) (string, error){
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"uID":userid,
+		"email":email,
 		"exp":time.Now().Add(time.Hour * 2).Unix(),
 	},
 	)
