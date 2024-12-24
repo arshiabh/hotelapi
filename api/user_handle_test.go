@@ -20,20 +20,19 @@ type testdb struct {
 	UserStore db.UserStore
 }
 
-func (tdb *testdb) teardown() {
-	if err := tdb.UserStore.Drop(context.TODO()); err != nil {
-		log.Fatal(err)
-	}
-}
+// func (tdb *testdb) teardown() {
+// if err := tdb.UserStore.Drop(context.TODO()); err != nil {
+// log.Fatal(err)
+// }
+// }
 
-func setup(t *testing.T) *testdb {
+func setup(_ *testing.T) *testdb {
 	// dbname := "hotel-reservation-test"
 	testdburi := "mongodb://localhost:27017"
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(testdburi))
 	if err != nil {
 		log.Fatal(err)
 	}
-	t.Log()
 	return &testdb{
 		UserStore: db.NewMongoUserStore(client),
 	}
@@ -42,7 +41,7 @@ func setup(t *testing.T) *testdb {
 func TestUserPost(t *testing.T) {
 	tdb := setup(t)
 	//build func to drop collection then defer it hear to delete it after test
-	defer tdb.teardown()
+	// defer tdb.teardown()
 	app := fiber.New()
 	NewUserHandler := NewUserHandler(tdb.UserStore)
 	app.Post("/", NewUserHandler.HandlePostUser)
@@ -53,10 +52,10 @@ func TestUserPost(t *testing.T) {
 		Email:     "arshitest@gmail.com",
 		Password:  "1234",
 	}
-
 	b, _ := json.Marshal(params)
-	req := httptest.NewRequest("POST", "/", bytes.NewReader(b))
-	req.Header.Add("Content-Type", "application/json")
+	reader := bytes.NewReader(b)
+	req := httptest.NewRequest("POST", "/", reader)
+	req.Header.Add("content-type", "application/json")
 	res, _ := app.Test(req)
 	fmt.Println(res.StatusCode)
 }

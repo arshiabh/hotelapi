@@ -44,7 +44,7 @@ func (s *MongoUserStore) Validation(ctx context.Context, data types.Authparams) 
 	var user types.User
 	res := s.coll.FindOne(ctx, bson.M{"email": data.Email})
 	if err := res.Decode(&user); err != nil {
-		return fmt.Errorf("email is not valid")
+		return fmt.Errorf("invalid credentials")
 	}
 	if err := utils.CheckHashPassword(user.EncryptedPassword, data.Password); err != nil {
 		return err

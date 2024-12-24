@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/arshiabh/hotelapi/db"
-	"github.com/arshiabh/hotelapi/middleware"
 	"github.com/arshiabh/hotelapi/types"
+	"github.com/arshiabh/hotelapi/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,9 +24,10 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return err
 	}
 	if err := h.UserStore.Validation(c.Context(), Authparams); err != nil {
-		return err
+		c.Status(400) 
+		return err 
 	}
-	token, err := middleware.GenarateToken(Authparams.Email)
+	token, err := utils.GenarateToken(Authparams.Email)
 	if err != nil {
 		return err
 	}
