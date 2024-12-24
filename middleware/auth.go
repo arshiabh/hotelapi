@@ -11,14 +11,20 @@ import (
 const secret_key = "supersecret"
 
 func JWTAuthentication(c *fiber.Ctx) error {
-	token := c.GetRespHeader("X-Api-Token")
-	if err := ParseJWTtoken(token); err != nil {
+	token := c.GetReqHeaders()["X-Api-Token"]
+	tokenstr := token[0]
+	if tokenstr == ""{
+		return c.JSON(fiber.Map{"error":"unauthorized"})
+	}
+	email, err := ParseJWTtoken(tokenstr)
+	if  err != nil {
 		return err
 	}
-	return nil
+	c.Set("email", email)
+	return c.Next()
 }
 
-func ParseJWTtoken(tokenstr string) error {
+func ParseJWTtoken(tokenstr string) (string, error) {
 	token, err := jwt.Parse(tokenstr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			fmt.Printf("Unexpected signing method: %v", token.Header["alg"])
@@ -27,12 +33,14 @@ func ParseJWTtoken(tokenstr string) error {
 		return []byte(secret_key), nil
 	})
 	if err != nil {
-		return err
+		return "",err
 	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims["foo"], claims["nbf"])
-	}
-	return fmt.Errorf("Unauthorized")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return "", err
+	} 
+	email := claims["email"].(string)
+	return email, nil	
 }
 
 

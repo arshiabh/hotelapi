@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/middleware"
 	"github.com/arshiabh/hotelapi/types"
@@ -28,10 +26,9 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	if err := h.UserStore.Validation(c.Context(), Authparams); err != nil {
 		return err
 	}
-	if token, err := middleware.GenarateToken(Authparams.Email); err != nil {
+	token, err := middleware.GenarateToken(Authparams.Email)
+	if err != nil {
 		return err
-		} else {
-			fmt.Println(token)
-		}
-	return c.Status(200).JSON(fiber.Map{"message": "login successfully"})
+	}
+	return c.Status(200).JSON(fiber.Map{"token": token})
 }
