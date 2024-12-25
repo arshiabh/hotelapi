@@ -1,6 +1,9 @@
 package api
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/arshiabh/hotelapi/utils"
@@ -21,13 +24,21 @@ func NewAuthHandler(userstore db.UserStore) *AuthHandler {
 func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	var Authparams types.Authparams
 	if err := c.BodyParser(&Authparams); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		if errors.Is(err, fiber.ErrUnprocessableEntity) {
+			c.Status(fiber.StatusUnprocessableEntity)
+			return fmt.Errorf("some required information is missing")
+		}
 		return err
 	}
-	if err := h.UserStore.Validation(c.Context(), Authparams); err != nil {
-		c.Status(400) 
-		return err 
+	//check credentials and get useid for token
+	userID, err := h.UserStore.Validation(c.Context(), Authparams)
+	if err != nil {
+		c.Status(400)
+		return err
 	}
-	token, err := utils.GenarateToken(Authparams.Email)
+	struserID := userID.Hex()
+	token, err := utils.GenarateToken(struserID, Authparams.Email)
 	if err != nil {
 		return err
 	}

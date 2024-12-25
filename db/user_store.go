@@ -20,12 +20,12 @@ type Dropper interface {
 type UserStore interface {
 	Dropper
 
-	GetUserById(context.Context, primitive.ObjectID) (*types.User, error)
+	GetUserById(context.Context, string) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
 	InsertUser(context.Context, *types.User) (*types.User, error)
-	DropUser(context.Context, primitive.ObjectID) error
-	UpdateUser(context.Context, primitive.ObjectID, bson.M) error
-	Validation(context.Context, types.Authparams) error
+	DropUser(context.Context, string) error
+	UpdateUser(context.Context, string, bson.M) error
+	Validation(context.Context, types.Authparams) (primitive.ObjectID, error)
 }
 
 type MongoUserStore struct {
@@ -40,16 +40,16 @@ func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 	}
 }
 
-func (s *MongoUserStore) Validation(ctx context.Context, data types.Authparams) error {
+func (s *MongoUserStore) Validation(ctx context.Context, data types.Authparams) (primitive.ObjectID, error) {
 	var user types.User
 	res := s.coll.FindOne(ctx, bson.M{"email": data.Email})
 	if err := res.Decode(&user); err != nil {
-		return fmt.Errorf("invalid credentials")
+		return primitive.NilObjectID, fmt.Errorf("invalid credentials")
 	}
 	if err := utils.CheckHashPassword(user.EncryptedPassword, data.Password); err != nil {
-		return err
+		return primitive.NilObjectID, err
 	}
-	return nil
+	return user.ID, nil
 }
 
 func (s *MongoUserStore) Drop(ctx context.Context) error {
@@ -57,9 +57,13 @@ func (s *MongoUserStore) Drop(ctx context.Context) error {
 	return s.coll.Drop(ctx)
 }
 
-func (s *MongoUserStore) GetUserById(ctx context.Context, id primitive.ObjectID) (*types.User, error) {
+func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.User, error) {
+	uid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 	user := types.User{}
-	if err := s.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&user); err != nil {
+	if err := s.coll.FindOne(ctx, bson.M{"_id": uid}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -89,16 +93,24 @@ func (s *MongoUserStore) InsertUser(ctx context.Context, user *types.User) (*typ
 	return user, nil
 }
 
-func (s *MongoUserStore) DropUser(ctx context.Context, uid primitive.ObjectID) error {
-	_, err := s.coll.DeleteOne(ctx, bson.M{"_id": uid})
+func (s *MongoUserStore) DropUser(ctx context.Context, id string) error {
+	uid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.coll.DeleteOne(ctx, bson.M{"_id": uid})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *MongoUserStore) UpdateUser(ctx context.Context, uid primitive.ObjectID, update bson.M) error {
-	_, err := s.coll.UpdateOne(ctx, bson.M{"_id": uid},
+func (s *MongoUserStore) UpdateUser(ctx context.Context, id string, update bson.M) error {
+	uid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.coll.UpdateOne(ctx, bson.M{"_id": uid},
 		bson.M{
 			"$set": update,
 		},

@@ -51,11 +51,7 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 
 func (h *HotelHandler) HandleGetHotelRooms(c *fiber.Ctx) error {
 	id := c.Params("id")
-	hid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "bad request"})
-	}
-	rooms, err := h.Store.Room.GetRooms(c.Context(), hid)
+	rooms, err := h.Store.Room.GetRooms(c.Context(), id)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "could not fetch data"})
 	}

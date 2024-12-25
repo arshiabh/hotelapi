@@ -61,6 +61,5 @@ func main() {
 	roomhandler := api.NewRoomHandler(store)
 	apiv1.Get("room/:id/book/", roomhandler.HandleBookRoom)
 
-
 	app.Listen(*listenAddr)
 }
