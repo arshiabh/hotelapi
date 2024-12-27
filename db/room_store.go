@@ -73,4 +73,3 @@ func (s *MongoRoomStore) GetRoomById(ctx context.Context, id string) (*types.Roo
 	return &room, nil
 }
 
-
