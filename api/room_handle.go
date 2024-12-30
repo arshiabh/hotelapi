@@ -1,9 +1,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type RoomHandler struct {
@@ -27,9 +30,29 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
+	if err := params.Validate(); err != nil {
+		return err
+	}
 	user, ok := c.Context().Value("user").(*types.User)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
+	}
+	where := bson.M{
+		"roomID": room.ID,
+		"fromDate": bson.M{
+			"$gte": params.FromDate,
+		},
+		"tillDate": bson.M{
+			"$lte": params.TillDate,
+		},
+	}
+	bookings, err := h.Store.Book.GetBookings(c.Context(), where)
+	if err != nil {
+		return err
+	}
+	fmt.Println(len(bookings))
+	if len(bookings) > 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "room already booked"})
 	}
 
 	book := types.Booking{
