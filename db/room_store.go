@@ -12,7 +12,7 @@ import (
 const coll = "rooms"
 
 type Roomstore interface {
-	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
+	InsertRoom(context.Context, *types.Room) (*types.Room, error)
 	GetRooms(context.Context, bson.M) ([]*types.Room, error)
 	GetRoomById(context.Context, string) (*types.Room, error)
 }
@@ -62,10 +62,9 @@ func (s *MongoRoomStore) GetRoomById(ctx context.Context, id string) (*types.Roo
 		return nil, err
 	}
 	var room types.Room
-	res := s.coll.FindOne(ctx, bson.M{"_id":rid})
+	res := s.coll.FindOne(ctx, bson.M{"_id": rid})
 	if err := res.Decode(&room); err != nil {
 		return nil, err
 	}
 	return &room, nil
 }
-

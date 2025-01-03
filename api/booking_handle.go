@@ -40,3 +40,21 @@ func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"booking": booking})
 }
+
+
+func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
+	id := c.Params("id")
+	booking, err := h.store.Book.GetBookingByID(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	user, ok := c.Context().UserValue("user").(*types.User)
+	if !ok {
+		return err
+	}
+	if booking.UserID != user.ID {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorizd"})
+	}
+	h.store.Book.DeleteBooking(c.Context(), bson.M{"_id": booking.ID})
+	return c.JSON(fiber.Map{"message":"booking canceled"})
+}

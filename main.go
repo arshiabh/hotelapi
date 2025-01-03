@@ -67,6 +67,7 @@ func main() {
 
 	bookHandler := api.NewBookingHandler(store)
 	apiv1.Get("booking/:id", bookHandler.HandleGetBooking)
+	apiv1.Delete("booking/:id", bookHandler.HandleCancelBooking)
 	admin.Get("booking/", bookHandler.HandleGetBookings)
 	app.Listen(*listenAddr)
 }

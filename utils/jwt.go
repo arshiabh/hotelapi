@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -33,11 +34,15 @@ func VerifyToken(tokenstr string) (string, string, error) {
 	return userID, email, nil
 }
 
-func GenarateToken(userID string, email string) (string, error) {
+func GenarateToken(userID string, email string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": userID,
 		"email":  email,
 		"exp":    time.Now().Add(time.Hour * 2).Unix(),
 	})
-	return token.SignedString([]byte(Secret_key))
+	tokenstr, err := token.SignedString([]byte(Secret_key))
+	if err != nil {
+		log.Fatal("failed to created token")
+	}
+	return tokenstr
 }

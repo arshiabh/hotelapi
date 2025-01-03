@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/arshiabh/hotelapi/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,6 +16,7 @@ type BookingStore interface {
 	InsertBooking(context.Context, *types.Booking) (*types.Booking, error)
 	GetBookings(context.Context, bson.M) ([]*types.Booking, error)
 	GetBookingByID(context.Context, string) (*types.Booking, error)
+	DeleteBooking(context.Context, bson.M) error
 }
 
 type MongoBookStore struct {
@@ -56,7 +58,18 @@ func (s *MongoBookStore) GetBookingByID(ctx context.Context, id string) (*types.
 	}
 	res := s.coll.FindOne(ctx, bson.M{"_id": bid})
 	if err := res.Decode(&room); err != nil {
+		if err.Error() == mongo.ErrNoDocuments.Error() {
+			return nil, fmt.Errorf("nothing found")
+		}
 		return nil, err
 	}
 	return room, nil
+}
+
+func (s *MongoBookStore) DeleteBooking(ctx context.Context, filter bson.M) error {
+	_, err := s.coll.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }

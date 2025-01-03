@@ -65,7 +65,7 @@ func (params CreateUserFromParams) Validate() error {
 		return fmt.Errorf("email is invalid")
 	}
 
-	if len(params.Password) < 4 {
+	if len(params.Password) < 3 {
 		return fmt.Errorf("password is weak")
 	}
 

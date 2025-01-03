@@ -38,9 +38,6 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return err
 	}
 	struserID := userID.Hex()
-	token, err := utils.GenarateToken(struserID, Authparams.Email)
-	if err != nil {
-		return err
-	}
+	token := utils.GenarateToken(struserID, Authparams.Email)
 	return c.Status(200).JSON(fiber.Map{"token": token})
 }

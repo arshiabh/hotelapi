@@ -4,74 +4,45 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/arshiabh/hotelapi/db"
-	"github.com/arshiabh/hotelapi/types"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	fixtures "github.com/arshiabh/hotelapi/db/fixture"
+	"github.com/arshiabh/hotelapi/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	client     *mongo.Client
 	RoomStore  *db.MongoRoomStore
 	HotelStore *db.MongoHotelStore
 )
 
-func seedHotel(name string, location string, rating int) {
-	hotel := types.Hotel{
-		Name:     name,
-		Location: location,
-		Rooms:    []primitive.ObjectID{},
-		Rating:   rating,
-	}
-	insertedhotel, err := HotelStore.InsertHotel(context.TODO(), &hotel)
-	if err != nil {
-		log.Fatal(err)
-	}
-	rooms := []types.Room{
-		{
-			Size: "small",
-			Price: 99.9,
-		},
-		{
-			Size: "medium",
-			Price: 122.0,
-		},
-		{
-			Size: "kingsize",
-			Price: 139.99,
-		},
-	}
-
-	for _, room := range rooms {
-		room.HotelID = insertedhotel.ID
-		insertedroom, err := RoomStore.InsertRoom(context.TODO(), &room)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(insertedroom)
-	}
-
-}
-
 func main() {
-	seedHotel("bellucia", "france", 3)
-	seedHotel("cozy one", "netherland", 5)
-	seedHotel("totenham", "london", 1)
-}
-
-func init() {
-	var err error
-	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
+	var ctx context.Context
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(db.DBURI))
 	if err != nil {
 		log.Fatal(err)
 	}
-	//drop table here to make test clear
-	client.Database(db.DBNAME).Collection("hotels").Drop(context.TODO())
-	client.Database(db.DBNAME).Collection("rooms").Drop(context.TODO())
+	if err := client.Database(db.DBNAME).Drop(ctx); err != nil {
+		log.Fatal(err)
+	}
+	hotelStore := db.NewMongoHotelStore(client)
+	store := &db.Store{
+		User:  db.NewMongoUserStore(client),
+		Book:  db.NewMongoBookingStore(client),
+		Room:  db.NewMongoRoomStore(client, hotelStore),
+		Hotel: hotelStore,
+	}
 
-	HotelStore = db.NewMongoHotelStore(client)
-	RoomStore = db.NewMongoRoomStore(client, HotelStore)
+	user := fixtures.AddUser(store, "arshia", "bohlooli", false)
+	id := user.ID.Hex()
+	fmt.Println("james ->", utils.GenarateToken(id, user.Email))
+	admin := fixtures.AddUser(store, "admin", "admin", true)
+	fmt.Println("admin ->", utils.GenarateToken(admin.ID.Hex(), admin.Email))
+	hotel := fixtures.AddHotel(store, "some hotel", "bermuda", 5, nil)
+	room := fixtures.AddRoom(store, "large", true, 88.44, hotel.ID)
+	booking := fixtures.AddBooking(store, user.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 5))
+	fmt.Println("booking ->", booking.ID)
 
 }
