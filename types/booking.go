@@ -31,6 +31,9 @@ func (p *BookingParams) Validate() error {
 	if time.Now().After(p.FromDate) || time.Now().After(p.TillDate) {
 		return fmt.Errorf("could not book room from past")
 	}
+	if p.FromDate.After(p.TillDate) {
+		return fmt.Errorf("invalid till date time")
+	}
 	if p.NumPerson > 4 || p.NumPerson ==0 {
 		return fmt.Errorf("invalid number of person")
 	}

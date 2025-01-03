@@ -13,7 +13,7 @@ const coll = "rooms"
 
 type Roomstore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
-	GetRooms(context.Context, string) ([]*types.Room, error)
+	GetRooms(context.Context, bson.M) ([]*types.Room, error)
 	GetRoomById(context.Context, string) (*types.Room, error)
 }
 
@@ -46,13 +46,9 @@ func (s *MongoRoomStore) InsertRoom(ctx context.Context, room *types.Room) (*typ
 	return room, nil
 }
 
-func (s *MongoRoomStore) GetRooms(ctx context.Context, id string) ([]*types.Room, error) {
-	rid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+func (s *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error) {
 	rooms := []*types.Room{}
-	res, err := s.coll.Find(ctx, bson.M{"hotelID": rid})
+	res, err := s.coll.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

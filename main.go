@@ -36,13 +36,14 @@ func main() {
 		roomstore    = db.NewMongoRoomStore(client, hotelstore)
 		userstore    = db.NewMongoUserStore(client)
 		store        = db.Store{
-			User:   userstore,
-			Room:   roomstore,
-			Hotel:  hotelstore,
-			Book: bookingstore,
+			User:  userstore,
+			Room:  roomstore,
+			Hotel: hotelstore,
+			Book:  bookingstore,
 		}
 		apiv1 = app.Group("api/v1/", middleware.JWTAuthentication(userstore))
 		auth  = app.Group("api/")
+		admin = apiv1.Group("/admin", middleware.AdminAuth)
 	)
 
 	authhandler := api.NewAuthHandler(userstore)
@@ -61,7 +62,11 @@ func main() {
 	apiv1.Get("hotel/", hotelhandler.HandleGetHotels)
 
 	roomhandler := api.NewRoomHandler(store)
-	apiv1.Get("room/:id/book/", roomhandler.HandleBookRoom)
+	apiv1.Get("room/", roomhandler.HandleGetRooms)
+	apiv1.Post("room/:id/book/", roomhandler.HandleBookRoom)
 
+	bookHandler := api.NewBookingHandler(store)
+	apiv1.Get("booking/:id", bookHandler.HandleGetBooking)
+	admin.Get("booking/", bookHandler.HandleGetBookings)
 	app.Listen(*listenAddr)
 }

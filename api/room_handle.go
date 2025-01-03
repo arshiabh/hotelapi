@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
@@ -50,7 +48,7 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(len(bookings))
+	//just call it to make sure if exist base on filter to know if it already exist
 	if len(bookings) > 0 {
 		return c.Status(400).JSON(fiber.Map{"error": "room already booked"})
 	}
@@ -67,4 +65,12 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return err
 	}
 	return c.JSON(fiber.Map{"booked": insertedbook})
+}
+
+func (h *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
+	rooms, err := h.Store.Room.GetRooms(c.Context(), bson.M{})
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"rooms":rooms})
 }

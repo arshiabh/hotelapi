@@ -4,6 +4,7 @@ import (
 	"github.com/arshiabh/hotelapi/db"
 	"github.com/arshiabh/hotelapi/types"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -51,7 +52,11 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 
 func (h *HotelHandler) HandleGetHotelRooms(c *fiber.Ctx) error {
 	id := c.Params("id")
-	rooms, err := h.Store.Room.GetRooms(c.Context(), id)
+	hid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	rooms, err := h.Store.Room.GetRooms(c.Context(), bson.M{"hotelID": hid})
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "could not fetch data"})
 	}
